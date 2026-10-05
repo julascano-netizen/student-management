@@ -71,6 +71,18 @@ app.get('/students/search', (req, res) => {
     });
   });
 
+  app.post('/students/delete/:id', (req, res) => {
+    const id = req.params.id;
+  
+    db.query('DELETE FROM students WHERE id = ?', [id], (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Unable to delete student');
+      }
+      res.redirect('/');
+    });
+  });
+
   app.listen(3000, () => {
     console.log('Server running at http://localhost:3000');
   });
