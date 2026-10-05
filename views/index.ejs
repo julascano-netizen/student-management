@@ -6,6 +6,10 @@
 <body>
   <h1>Student Management System</h1>
   <a href="/students/add">Add Student</a>
+  <form action="/students/search" method="GET">
+    <input type="text" name="keyword" placeholder="Search student...">
+    <button type="submit">Search</button>
+  </form>
   <hr>
   <h2>Student List</h2>
   <table border="1" cellpadding="10">
