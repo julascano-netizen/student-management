@@ -15,7 +15,7 @@ A simple web-based Student Management System developed using:
 - Form validation 
 ## Installation 
 Clone the repository: 
-git clone YOUR_REPOSITORY_URL 
+git clone [YOUR_REPOSITORY_URL](https://github.com/julascano-netizen/student-management/tree/main) 
 Install dependencies: 
 npm install 
 Create the database. 
