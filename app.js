@@ -1,13 +1,14 @@
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const app = express();
 
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'student_management'
-});
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
+  });
 
 db.connect((err) => {
   if (err) {
@@ -70,6 +71,56 @@ app.get('/students/search', (req, res) => {
       res.render('index', { students: results });
     });
   });
+
+  app.post('/students/delete/:id', (req, res) => {
+    const id = req.params.id;
+  
+    db.query('DELETE FROM students WHERE id = ?', [id], (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Unable to delete student');
+      }
+      res.redirect('/');
+    });
+  });
+
+  // Show the edit form
+app.get('/students/edit/:id', (req, res) => {
+  db.query('SELECT * FROM students WHERE id = ?', [req.params.id], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error');
+    }
+    if (results.length === 0) {
+      return res.status(404).send('Student not found');
+    }
+    res.render('edit', { student: results[0] });
+  });
+});
+
+// Save the changes
+app.post('/students/edit/:id', (req, res) => {
+  const { student_id, first_name, last_name, course, year_level, email } = req.body;
+
+  const sql = `
+    UPDATE students
+    SET student_id = ?, first_name = ?, last_name = ?,
+        course = ?, year_level = ?, email = ?
+    WHERE id = ?
+  `;
+  const values = [student_id, first_name, last_name, course, year_level, email, req.params.id];
+
+  db.query(sql, values, (err) => {
+    if (err) {
+      console.error(err);
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(400).send('Student ID already exists');
+      }
+      return res.status(500).send('Unable to update student');
+    }
+    res.redirect('/');
+  });
+});
 
   app.listen(3000, () => {
     console.log('Server running at http://localhost:3000');
