@@ -22,6 +22,20 @@ app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+function validateStudent({ student_id, first_name, last_name, course, year_level, email }) {
+  if (!student_id || !first_name || !last_name || !course || !year_level || !email) {
+    return 'All fields are required.';
+  }
+  const year = Number(year_level);
+  if (!Number.isInteger(year) || year < 1 || year > 5) {
+    return 'Year level must be a number from 1 to 5.';
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return 'Please enter a valid email address.';
+  }
+  return null;
+}
+
 app.get('/', (req, res) => {
     db.query('SELECT * FROM students ORDER BY id DESC', (err, results) => {
       if (err) {
@@ -33,13 +47,12 @@ app.get('/', (req, res) => {
   });
 
   app.post('/students/add', (req, res) => {
-  const { student_id, first_name, last_name, course, year_level, email } = req.body;
-
-  const sql = `
-    INSERT INTO students
-    (student_id, first_name, last_name, course, year_level, email)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
+    const { student_id, first_name, last_name, course, year_level, email } = req.body;
+  
+    const error = validateStudent(req.body);
+    if (error) {
+      return res.status(400).send(error);
+    }
   const values = [student_id, first_name, last_name, course, year_level, email];
 
   db.query(sql, values, (err) => {
@@ -102,12 +115,10 @@ app.get('/students/edit/:id', (req, res) => {
 app.post('/students/edit/:id', (req, res) => {
   const { student_id, first_name, last_name, course, year_level, email } = req.body;
 
-  const sql = `
-    UPDATE students
-    SET student_id = ?, first_name = ?, last_name = ?,
-        course = ?, year_level = ?, email = ?
-    WHERE id = ?
-  `;
+  const error = validateStudent(req.body);
+  if (error) {
+    return res.status(400).send(error);
+  }
   const values = [student_id, first_name, last_name, course, year_level, email, req.params.id];
 
   db.query(sql, values, (err) => {
